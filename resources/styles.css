@@ -1,0 +1,18 @@
+.dirs_list {
+    display: flex;
+    flex-direction: column;
+}
+
+.images_list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+    align-content: flex-start;
+}
+
+.images_item {
+    flex-basis: auto;
+    align-self: flex-start;
+}   

@@ -12,25 +12,27 @@ use image::{
 };
 
 
+mod html_builder;
+
 fn main() {
     let matches = App::new("Album Builder")
-                        .version("0.1")
-                        .author("Jamie Apps")
-                        .about("Creates in-situe html photo albums")
-                        .arg(Arg::with_name("dir")
-                            .short("d")
-                            .long("dir")
-                            .value_name("DIR")
-                            .help("Sets the top level dir to build an album within")
-                            .takes_value(true)
-                            .default_value("."))
-                        .arg(Arg::with_name("depth")
-                            .long("depth")
-                            .value_name("DEPTH")
-                            .help("Sets the maximum depth to search for photos")
-                            .takes_value(true)
-                            .default_value("3"))
-                        .get_matches();
+                    .version("0.1")
+                    .author("Jamie Apps")
+                    .about("Creates in situ HTML photo albums")
+                    .arg(Arg::with_name("dir")
+                        .short("d")
+                        .long("dir")
+                        .value_name("DIR")
+                        .help("Sets the top level dir to build an album within")
+                        .takes_value(true)
+                        .default_value("."))
+                    .arg(Arg::with_name("depth")
+                        .long("depth")
+                        .value_name("DEPTH")
+                        .help("Sets the maximum depth to search for photos")
+                        .takes_value(true)
+                        .default_value("3"))
+                    .get_matches();
 
 
     let tld = matches.value_of("dir").unwrap_or_default();
@@ -63,31 +65,6 @@ fn get_component_count(p: &PathBuf) -> usize {
 struct FSBranch {
     path: PathBuf,
     sub_dirs: Vec<FSBranch>
-}
-
-#[allow(dead_code)]
-fn search_for_dirs(path: &PathBuf, current_depth: usize, max_depth:usize) -> Vec<FSBranch> {
-    let branches : Vec<FSBranch> = fs::read_dir(path).unwrap().filter_map(|d_entry_res| {
-        if let Ok(d_entry) = d_entry_res {
-            let file_name = d_entry.file_name();
-            let fn_str : &str = file_name.to_str().unwrap();
-            if d_entry.file_type().unwrap().is_dir() && fn_str.chars().nth(0).unwrap() != '.' {
-                let path = d_entry.path();
-                let mut sub_dirs = Vec::new();
-
-                if current_depth!=max_depth {
-                    sub_dirs = search_for_dirs(&path, current_depth+1, max_depth);
-                }
-                
-                return Some(FSBranch {path,sub_dirs});
-            } else {
-                return None
-            }
-        } else {
-            return None
-        }
-    }).collect();
-    return branches;
 }
 
 struct PhotoAction {
