@@ -1,14 +1,25 @@
 .dirs_list {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
 }
+
+.dirs_item {
+    flex-basis: auto;
+    align-self: flex-start;
+} 
+
+/* .dirs_link {
+
+} */
 
 .images_list {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    align-items: center;
+    /* align-items: center; */
     align-content: flex-start;
 }
 

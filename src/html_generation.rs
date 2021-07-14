@@ -8,15 +8,17 @@ use std::{
 };
 
 
-pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord) {
+pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf) {
+    let styles_path = resources_path.join("styles.css").canonicalize().unwrap();
+    let script_path = resources_path.join("main.js").canonicalize().unwrap();
     let mut dom = HtmlDom::new();
         dom.add_element(
             HtmlElement::new(HtmlElementType::Head)
                 .add_element(HtmlElement::new(HtmlElementType::Link)
                     .set_rel("stylesheet")
-                    .set_href("styles.css"))
+                    .set_href(styles_path.to_str().unwrap()))
                 .add_element(HtmlElement::new(HtmlElementType::Script)
-                    .set_src("main.js"))
+                    .set_src(script_path.to_str().unwrap()))
                 .add_element(HtmlElement::new(HtmlElementType::Title)
                     .set_text("Photo Album")));
 
@@ -24,33 +26,37 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord) {
 
     let mut body = HtmlElement::new(HtmlElementType::Body);
     // build up the top of the body
-    body = body.add_element(HtmlElement::new(HtmlElementType::P)
-                    .set_text("Sub Dirs")
-                );
     // --- Sub Folders ---
-    // for each folder, format the dir template and insert it
-    let mut list = HtmlElement::new(HtmlElementType::Ul);
-    for (index,action_record) in ar.get_subdirs().iter().enumerate() {
-        println!("folder: {}",index);
-        list = list.add_element(format_dir_template(action_record));
+    if ar.get_subdirs().len() > 0 {
+        body = body.add_element(HtmlElement::new(HtmlElementType::P)
+                        .set_text("Sub Directories")
+                    );
+        // for each folder, format the dir template and insert it
+        let mut list = HtmlElement::new(HtmlElementType::Ul)
+            .add_class("dirs_list");
+        for action_record in ar.get_subdirs().iter() {
+            list = list.add_element(format_dir_template(action_record));
+        }
+        body = body.add_element(list);
+        body = body.add_element(HtmlElement::new(HtmlElementType::Br));
     }
-    body = body.add_element(list);
-    body = body.add_element(HtmlElement::new(HtmlElementType::Br));
 
 
     // --- Images ---
-    body = body.add_element(HtmlElement::new(HtmlElementType::P)
-        .set_text("Images")
-    );
-    // for each image, format the image template and insert it
-    let mut list = HtmlElement::new(HtmlElementType::Ul);
-    for photo_action in ar.get_photos() {
-        list = list.add_element(format_image_template(photo_action));
+    if ar.get_photos().len() > 0 {
+        body = body.add_element(HtmlElement::new(HtmlElementType::P)
+            .set_text("Images")
+        );
+        // for each image, format the image template and insert it
+        let mut list = HtmlElement::new(HtmlElementType::Ul)
+            .add_class("images_list");
+        for photo_action in ar.get_photos() {
+            list = list.add_element(format_image_template(photo_action));
+        }
+        body = body.add_element(list);
+        // build up bottom of body
+        body = body.add_element(HtmlElement::new(HtmlElementType::Br));
     }
-    body = body.add_element(list);
-
-    // build up bottom of body
-    body = body.add_element(HtmlElement::new(HtmlElementType::Br));
 
     // render to file
     // setup writer
@@ -62,7 +68,7 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord) {
 fn format_image_template(pa: &PhotoAction) -> HtmlElement {
     let downsizes_image_location = pa.get_downsized();
     let image_name = downsizes_image_location.file_name().unwrap().to_str().unwrap();
-    let he = HtmlElement::new(HtmlElementType::Li)
+    let he = HtmlElement::new(HtmlElementType::Div)
         .add_class("images_item")
         .add_element(HtmlElement::new(HtmlElementType::A)
             .add_class("images_link")
@@ -92,19 +98,26 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
             sub_folder_index_path = temp;
         }
 
+        let dir_path = ar.get_path();
+        let dir_name = dir_path.file_name().unwrap().to_str().unwrap();
+
 
         let he = HtmlElement::new(HtmlElementType::Li)
-        .add_class("images_item")
+        .add_class("dirs_item")
         .add_element(HtmlElement::new(HtmlElementType::A)
-            .add_class("images_link")
+            .add_class("dirs_link")
             .set_href(sub_folder_index_path.to_str().unwrap())
             .add_element(HtmlElement::new(HtmlElementType::Img)
                 .set_src(cover_photo_path)
-                .set_alt(ar.get_path().file_name().unwrap().to_str().unwrap())));
+                .set_alt(dir_name))
+            .add_element(HtmlElement::new(HtmlElementType::P)
+                .set_text(dir_name))
+            );
         return he;
     }
 
-
+    // todo, recursivley search for the first folder which contains an image
+    // then use that
     return HtmlElement::new(HtmlElementType::Li)
         .add_element(HtmlElement::new(HtmlElementType::P)
             .set_text("this is unimplemented"));

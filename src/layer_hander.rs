@@ -4,26 +4,27 @@ use std::{
     fs::DirEntry,
     path::PathBuf,
 };
-use std::iter::FromIterator;
 
 use rayon::prelude::*;
 
 use super::util::*;
 use super::html_generation::*;
 
-pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool) -> Option<ActionRecord> {
-    println!("handle layer on path: {:?}",path);
+pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf) -> Option<ActionRecord> {
     if current_depth == max_depth+1 {
         return None;
     }
     let mut action_record = ActionRecord::new(path);
     // look for existing cache dir
+    let cache_dir_path = path.join("cacheDir");
     if clean {
-        let cache_dir_path = path.join("cacheDir");
         if cache_dir_path.exists() {
             // delete it
             fs::remove_dir_all(cache_dir_path.clone()).unwrap();
         }
+        // make cache dir
+        fs::create_dir(cache_dir_path).unwrap();
+    } else if !cache_dir_path.exists() {
         // make cache dir
         fs::create_dir(cache_dir_path).unwrap();
     }
@@ -57,7 +58,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
     for directory in directories {
         if directory.file_name()!="cacheDir" {
             // is dir -> recurse
-            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean) {
+            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path) {
                 action_record.add_subdir_action(action);
             }
         }
@@ -103,7 +104,9 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         // create html
         let mut file_path = path.clone();
         file_path.push("index.html");
-        create_html_index(&file_path, &action_record);
+        create_html_index(&file_path, &action_record,resources_path);
+        // copy over the css
+
         // return status
         return None;
     } else {
@@ -111,7 +114,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         // create html
         let mut file_path = path.clone();
         file_path.push("index.html");
-        create_html_index(&file_path, &action_record);
+        create_html_index(&file_path, &action_record,resources_path);
         // return status
         return Some(action_record);
     }

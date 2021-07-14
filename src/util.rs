@@ -100,20 +100,29 @@ pub fn get_cache_dir_path<'a>(original_path: &'a PathBuf, cache_dir_name: &str) 
 }
 
 pub fn is_image_file(original_path: &PathBuf) -> bool {
-    let file_extension = original_path.extension().unwrap().to_str().unwrap();
-    for cand in ["jpg","jpeg","png"].iter() {
-        if *cand == file_extension {
-            return true;
+    if let Some(file_extension) = original_path.extension() {
+        let extension_str = file_extension.to_str().unwrap();
+        for cand in ["jpg","jpeg","png"].iter() {
+            if *cand == extension_str {
+                return true;
+            }
         }
+        return false;
+    } else {
+        println!("could not get extension on {:?}",original_path);
+        return false;
     }
-    return false;
 }
 
 pub fn is_html_file(original_path: &PathBuf) -> bool {
-    let file_extension = original_path.extension().unwrap().to_str().unwrap();
-    if ".html" == file_extension {
-        return true;
+    if let Some(file_extension) = original_path.extension() {
+        let extension_str = file_extension.to_str().unwrap();
+        if extension_str == "html" {
+            return true;
+        }
+        return false;
     } else {
+        println!("could not get extension on {:?}",original_path);
         return false;
     }
 }

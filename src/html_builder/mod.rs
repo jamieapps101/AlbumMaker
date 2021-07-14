@@ -30,7 +30,7 @@ impl HtmlDom {
 pub enum HtmlElementType {
     P, A, Ul, Li, Head, Body, Br,
     Link, Img, Script,Title,
-    // Div, 
+    Div, 
 }
 
 #[derive(Debug)]
@@ -128,15 +128,15 @@ impl HtmlElement {
                 }
                 write!(f,"{}</li>\n", space_pad(indent)).unwrap();
             },
-            // HtmlElementType::Div => {
-            //     write!(f,"{}<div class={}>\n", 
-            //         space_pad(indent), 
-            //         to_class_string(self.class)).unwrap();
-            //     for element in self.sub_elements {
-            //         element.render(indent+1, f);
-            //     }
-            //     write!(f,"{}</div>\n", space_pad(indent)).unwrap();
-            // }, 
+            HtmlElementType::Div => {
+                write!(f,"{}<div class={}>\n", 
+                    space_pad(indent), 
+                    to_class_string(self.class)).unwrap();
+                for element in self.sub_elements {
+                    element.render(indent+1, f);
+                }
+                write!(f,"{}</div>\n", space_pad(indent)).unwrap();
+            }, 
             HtmlElementType::A => {
                 write!(f,"{}<a class={} href={}>\n", 
                     space_pad(indent), 

@@ -44,22 +44,21 @@ fn main() {
     let n_threads : u32 = matches.value_of("threads").unwrap_or_default().parse().unwrap();
     let n_threads_str = format!("{}",n_threads);
     env::set_var("RAYON_NUM_THREADS", n_threads_str);
-                    
 
+    let clean : bool = match matches.index_of("clean") {
+        Some(_count) => true,
+        None => false,
+    };
+                    
     let tld = matches.value_of("dir").unwrap_or_default();
     let top_level_path = PathBuf::from(&tld).canonicalize().unwrap();
-
     let search_depth : usize = 
         match matches.value_of("depth").unwrap_or_default().parse() {
             Ok(value) => value,
             Err(_) => panic!("did not understand depth arguement"),
         };
-
-
-    println!("top_level_path: {:?}",top_level_path);
-    println!("max depth: {:?}",search_depth);
-
-    let _fs = handle_layer(&top_level_path, 0, search_depth,false);
+    let resources_path = PathBuf::from("/home/jamie/workspace/projects/album_maker/resources");
+    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path);
 }
 
 
@@ -84,6 +83,7 @@ mod test {
 
         let test_files_path = PathBuf::from("./test_files").canonicalize().unwrap();
         let search_depth = 2;
-        let _fs = handle_layer(&test_files_path, 0, search_depth,false);
+        let resources_path = PathBuf::from("./resources");
+        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path);
     }
 }
