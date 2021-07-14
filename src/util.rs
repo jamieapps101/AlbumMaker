@@ -60,6 +60,15 @@ impl PhotoAction {
     pub fn get_dir(&self) -> PathBuf {
         return self.dir.clone();
     }
+
+    pub fn get_name(&self) -> Option<&str> {
+        if let Some(os_str) = self.actual.file_name() {
+            return Some(os_str.to_str().unwrap());
+        } else {
+            return None;
+        }
+
+    }
 }
 
 use image::{

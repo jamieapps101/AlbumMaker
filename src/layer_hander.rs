@@ -11,6 +11,7 @@ use super::util::*;
 use super::html_generation::*;
 
 pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf) -> Option<ActionRecord> {
+    println!("starting work in {:?}",path);
     if current_depth == max_depth+1 {
         return None;
     }
@@ -37,7 +38,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
 
     // first isolate all the directories and files in this dir
     let entries : Vec<Result<fs::DirEntry, io::Error>> = fs::read_dir(path).unwrap().collect();
-    let directories : Vec<&DirEntry> = entries.iter().filter_map(|entry_res|
+    let mut directories : Vec<&DirEntry> = entries.iter().filter_map(|entry_res|
         if let Ok(d_entry) = entry_res {
             if d_entry.file_type().unwrap().is_dir() {
                 return Some(d_entry)
@@ -61,6 +62,9 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
     ).collect();
 
     // recursively act on all the directories
+    directories.sort_by(|a,b| {
+        a.file_name().to_str().unwrap().to_lowercase().cmp(&b.file_name().to_str().unwrap().to_lowercase())
+    });
     for directory in directories {
         if directory.file_name()!="cacheDir" {
             // is dir -> recurse
@@ -73,7 +77,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
 
     // once directories are finished, apply rayon to allow multi-threaded downsampling
     // to images in this directory
-    let pas : Vec<PhotoAction> = files.par_iter().filter_map(|file| {
+    let mut pas : Vec<PhotoAction> = files.par_iter().filter_map(|file| {
         // this needs to be canonicalisaed
         let abs_file_path = file.path();
         if !abs_file_path.is_absolute() {
@@ -101,6 +105,10 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             return None;
         }
     }).collect();
+    pas.sort_by(|a, b| {
+        a.get_name().unwrap().to_lowercase().cmp(&b.get_name().unwrap().to_lowercase())
+        // a.to_lowercase().cmp(&b.to_lowercase()
+    });
     for pa in pas  {
         action_record.add_photo_action(pa);
     }
