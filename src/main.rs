@@ -28,7 +28,7 @@ fn main() {
                         .value_name("DEPTH")
                         .help("Sets the maximum depth to search for photos")
                         .takes_value(true)
-                        .default_value("3"))
+                        .default_value("5"))
                     .arg(Arg::with_name("threads")
                         .long("threads")
                         .value_name("THREADS")

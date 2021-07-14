@@ -3,6 +3,7 @@
     flex-direction: row;
     justify-content: space-evenly;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .dirs_item {
@@ -22,6 +23,7 @@
     justify-content: space-evenly;
     align-items: center;
     align-content: flex-start;
+    width: 100%;
 }
 
 .images_item {

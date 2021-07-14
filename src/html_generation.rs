@@ -81,14 +81,17 @@ fn format_image_template(pa: &PhotoAction) -> HtmlElement {
 
 fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
 
+    let mut sub_folder_index_path = ar.get_path();
+    sub_folder_index_path.push("index.html");
+
+    let dir_path = ar.get_path();
+    let dir_name = dir_path.file_name().unwrap().to_str().unwrap();
+
     if let Some(pa) = get_first_photo(ar) {
         let cover_photo_containing_path = pa.get_dir();
         let downsized_path = pa.get_downsized();
         let abs_downsized_path = cover_photo_containing_path.join(downsized_path);
         let cover_photo_path = abs_downsized_path.to_str().unwrap();
-
-        let mut sub_folder_index_path = ar.get_path();
-        sub_folder_index_path.push("index.html");
 
         if !sub_folder_index_path.is_absolute() {
             let iterator  = sub_folder_index_path.components().skip(2);
@@ -96,10 +99,6 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
             temp.push(PathBuf::from_iter(iterator));
             sub_folder_index_path = temp;
         }
-
-        let dir_path = ar.get_path();
-        let dir_name = dir_path.file_name().unwrap().to_str().unwrap();
-
 
         let he = HtmlElement::new(HtmlElementType::Div)
         .add_class("dirs_item")
@@ -113,13 +112,18 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
                 .set_text(dir_name))
             );
         return he;
+    } else {
+        let he = HtmlElement::new(HtmlElementType::Div)
+        .add_class("dirs_item")
+        .add_element(HtmlElement::new(HtmlElementType::A)
+            .add_class("dirs_link")
+            .set_href(sub_folder_index_path.to_str().unwrap())
+            .add_element(HtmlElement::new(HtmlElementType::P)
+                .set_text(dir_name))
+            );
+        return he;
     }
 
-    // todo, recursivley search for the first folder which contains an image
-    // then use that
-    return HtmlElement::new(HtmlElementType::Li)
-        .add_element(HtmlElement::new(HtmlElementType::P)
-            .set_text("this is unimplemented"));
 }
 
 fn get_first_photo(ar: &ActionRecord) -> Option<PhotoAction> {
