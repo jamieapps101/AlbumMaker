@@ -28,8 +28,9 @@ impl HtmlDom {
 
 #[derive(Debug)]
 pub enum HtmlElementType {
-    P, A, Ul, Li, Head, Body,
-    Div, Link, Img, Script,Title
+    P, A, Ul, Li, Head, Body, Br,
+    Link, Img, Script,Title,
+    // Div, 
 }
 
 #[derive(Debug)]
@@ -42,7 +43,7 @@ pub struct HtmlElement {
     element_type: HtmlElementType,
     class:        Vec<String>,
     sub_elements: Vec<HtmlElement>,
-    id:           Option<String>,
+    // id:           Option<String>,
     src:          Option<String>,
     alt:          Option<String>,
     href:         Option<String>,
@@ -57,7 +58,7 @@ impl HtmlElement {
             element_type,
             class:        Vec::new(),
             sub_elements: Vec::new(),
-            id:           None,
+            // id:           None,
             src:          None,
             alt:          None,
             href:         None,
@@ -77,10 +78,10 @@ impl HtmlElement {
         self.class.push(c.to_owned());
         return self;
     }
-    pub fn set_id(mut self, id: &str) -> Self {
-        self.id = Some(String::from(id));
-        return self;
-    }
+    // pub fn set_id(mut self, id: &str) -> Self {
+    //     self.id = Some(String::from(id));
+    //     return self;
+    // }
     pub fn add_element(mut self, e: HtmlElement) -> Self {
         self.sub_elements.push(e);
         return self;
@@ -104,6 +105,10 @@ impl HtmlElement {
                     space_pad(indent), 
                     to_class_string(self.class),
                     to_content_string(self.text)).unwrap();
+            },
+            HtmlElementType::Br => {
+                write!(f,"{}<br>\n", 
+                    space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Ul => {
                 write!(f, "{}<li class={}>\n", 
@@ -123,15 +128,15 @@ impl HtmlElement {
                 }
                 write!(f,"{}</li>\n", space_pad(indent)).unwrap();
             },
-            HtmlElementType::Div => {
-                write!(f,"{}<div class={}>\n", 
-                    space_pad(indent), 
-                    to_class_string(self.class)).unwrap();
-                for element in self.sub_elements {
-                    element.render(indent+1, f);
-                }
-                write!(f,"{}</div>\n", space_pad(indent)).unwrap();
-            }, 
+            // HtmlElementType::Div => {
+            //     write!(f,"{}<div class={}>\n", 
+            //         space_pad(indent), 
+            //         to_class_string(self.class)).unwrap();
+            //     for element in self.sub_elements {
+            //         element.render(indent+1, f);
+            //     }
+            //     write!(f,"{}</div>\n", space_pad(indent)).unwrap();
+            // }, 
             HtmlElementType::A => {
                 write!(f,"{}<a class={} href={}>\n", 
                     space_pad(indent), 
