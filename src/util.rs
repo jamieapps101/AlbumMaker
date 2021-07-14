@@ -2,16 +2,22 @@ use std::path::PathBuf;
 
 
 pub struct ActionRecord {
+    dir: PathBuf,
     sub_dirs: Vec<ActionRecord>,
     photos: Vec<PhotoAction>,
 }
 
 impl ActionRecord {
-    pub fn new() -> Self {
+    pub fn new(path: &PathBuf) -> Self {
         Self {
+            dir: path.clone(),
             sub_dirs: Vec::new(),
             photos: Vec::new(),
         }
+    }
+
+    pub fn get_path(&self) -> PathBuf {
+        return self.dir.clone();
     }
 
     pub fn add_photo_action(&mut self, pa: PhotoAction) {
@@ -32,13 +38,14 @@ impl ActionRecord {
 }
 
 pub struct PhotoAction {
-    actual: PathBuf,
+    dir:       PathBuf,
+    actual:    PathBuf,
     downsized: PathBuf,
 }
 
 impl PhotoAction {
-    pub fn new(actual: PathBuf, downsized: PathBuf) -> Self {
-        PhotoAction {actual, downsized}
+    pub fn new(dir: PathBuf, actual: PathBuf, downsized: PathBuf) -> Self {
+        PhotoAction {dir, actual, downsized}
     }
 
     pub fn get_actual(&self) -> PathBuf {
@@ -47,6 +54,10 @@ impl PhotoAction {
 
     pub fn get_downsized(&self) -> PathBuf {
         self.downsized.clone()
+    }
+
+    pub fn get_dir(&self) -> PathBuf {
+        return self.dir.clone();
     }
 }
 
@@ -57,7 +68,19 @@ use image::{
 
 // file system manipulation
 pub fn downsize_image(in_file: &PathBuf, out_file: &PathBuf, width: u32) {
-    println!("> {:?}", in_file.file_name().unwrap());
+    if in_file.exists() && out_file.exists() {
+        // println!("\tBoth exist");
+        let in_file_creation_time = in_file.metadata().unwrap().created().unwrap();
+        let out_file_creation_time = out_file.metadata().unwrap().created().unwrap();
+        if let Err(_reason) = in_file_creation_time.duration_since(out_file_creation_time)  {
+            // the file to be converted already seems to have been converted
+            // the downsized file is newer than the original, so lets not
+            // waste time
+            println!("> {:?} - up to date", in_file.file_name().unwrap());
+            return;
+        }
+    }
+    println!("> {:?} - rendering", in_file.file_name().unwrap());
     let img = image::open(in_file).unwrap();
     let (img_height,img_width) = img.dimensions();
     let aspect_ratio : f32 = (img_height as f32)/(img_width as f32);
@@ -70,9 +93,9 @@ pub fn get_cache_dir_path<'a>(original_path: &'a PathBuf, cache_dir_name: &str) 
     let file_name = original_path.file_name().unwrap();
     let file_path = original_path.parent().unwrap();
     let new_path = file_path.join(cache_dir_name).join(file_name);
-    println!("get_cache_dir_path");
-    println!("\t{:?}",original_path);
-    println!("\t{:?}",new_path);
+    // println!("get_cache_dir_path");
+    // println!("\t{:?}",original_path);
+    // println!("\t{:?}",new_path);
     return new_path;
 }
 

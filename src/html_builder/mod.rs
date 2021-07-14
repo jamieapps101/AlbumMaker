@@ -111,13 +111,13 @@ impl HtmlElement {
                     space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Ul => {
-                write!(f, "{}<li class={}>\n", 
+                write!(f, "{}<ul class={}>\n", 
                     space_pad(indent), 
                     to_class_string(self.class)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</li>\n", space_pad(indent)).unwrap();
+                write!(f,"{}</ul>\n", space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Li => {
                 write!(f,"{}<li class={}>\n", 

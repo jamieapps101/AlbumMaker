@@ -47,7 +47,7 @@ fn main() {
                     
 
     let tld = matches.value_of("dir").unwrap_or_default();
-    let top_level_path = PathBuf::from(&tld);
+    let top_level_path = PathBuf::from(&tld).canonicalize().unwrap();
 
     let search_depth : usize = 
         match matches.value_of("depth").unwrap_or_default().parse() {
@@ -56,10 +56,10 @@ fn main() {
         };
 
 
-    println!("tld: {:?}",tld);
+    println!("top_level_path: {:?}",top_level_path);
     println!("max depth: {:?}",search_depth);
 
-    let _fs = handle_layer(&top_level_path, 0, search_depth);
+    let _fs = handle_layer(&top_level_path, 0, search_depth,false);
 }
 
 
@@ -76,8 +76,14 @@ mod test {
     use super::*;
     #[test]
     fn test_on_test_files() {
-        let test_files_path = PathBuf::from("./test_files");
+        let n_threads : u32 = 4;
+        let n_threads_str = format!("{}",n_threads);
+        env::set_var("RAYON_NUM_THREADS", n_threads_str);
+
+        println!("RAYON_NUM_THREADS: {:?}",env::var("RAYON_NUM_THREADS").unwrap());
+
+        let test_files_path = PathBuf::from("./test_files").canonicalize().unwrap();
         let search_depth = 2;
-        let _fs = handle_layer(&test_files_path, 0, search_depth);
+        let _fs = handle_layer(&test_files_path, 0, search_depth,false);
     }
 }
