@@ -32,7 +32,7 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: 
                         .set_text("Sub Directories")
                     );
         // for each folder, format the dir template and insert it
-        let mut list = HtmlElement::new(HtmlElementType::Ul)
+        let mut list = HtmlElement::new(HtmlElementType::Div)
             .add_class("dirs_list");
         for action_record in ar.get_subdirs().iter() {
             list = list.add_element(format_dir_template(action_record));
@@ -48,7 +48,7 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: 
             .set_text("Images")
         );
         // for each image, format the image template and insert it
-        let mut list = HtmlElement::new(HtmlElementType::Ul)
+        let mut list = HtmlElement::new(HtmlElementType::Div)
             .add_class("images_list");
         for photo_action in ar.get_photos() {
             list = list.add_element(format_image_template(photo_action));
@@ -81,10 +81,9 @@ fn format_image_template(pa: &PhotoAction) -> HtmlElement {
 
 fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
 
-    let photos = ar.get_photos();
-    if photos.len() > 0 {
-        let cover_photo_containing_path = photos[0].get_dir();
-        let downsized_path = photos[0].get_downsized();
+    if let Some(pa) = get_first_photo(ar) {
+        let cover_photo_containing_path = pa.get_dir();
+        let downsized_path = pa.get_downsized();
         let abs_downsized_path = cover_photo_containing_path.join(downsized_path);
         let cover_photo_path = abs_downsized_path.to_str().unwrap();
 
@@ -102,7 +101,7 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
         let dir_name = dir_path.file_name().unwrap().to_str().unwrap();
 
 
-        let he = HtmlElement::new(HtmlElementType::Li)
+        let he = HtmlElement::new(HtmlElementType::Div)
         .add_class("dirs_item")
         .add_element(HtmlElement::new(HtmlElementType::A)
             .add_class("dirs_link")
@@ -123,3 +122,17 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
             .set_text("this is unimplemented"));
 }
 
+fn get_first_photo(ar: &ActionRecord) -> Option<PhotoAction> {
+    if ar.get_photos().len() > 0 {
+        return Some(ar.get_photos()[0].clone())
+    } else if ar.get_subdirs().len() > 0 {
+        for i in 0..ar.get_subdirs().len() {
+            if let Some(pa) = get_first_photo(&ar.get_subdirs()[i]) {
+                return Some(pa)
+            }
+        }
+        return None;
+    } else {
+        return None;
+    }
+}

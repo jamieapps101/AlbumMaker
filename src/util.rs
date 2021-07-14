@@ -37,6 +37,7 @@ impl ActionRecord {
     }
 }
 
+#[derive(Clone)]
 pub struct PhotoAction {
     dir:       PathBuf,
     actual:    PathBuf,
@@ -80,13 +81,17 @@ pub fn downsize_image(in_file: &PathBuf, out_file: &PathBuf, width: u32) {
             return;
         }
     }
-    println!("> {:?} - rendering", in_file.file_name().unwrap());
-    let img = image::open(in_file).unwrap();
-    let (img_height,img_width) = img.dimensions();
-    let aspect_ratio : f32 = (img_height as f32)/(img_width as f32);
-    let new_height: u32 = (aspect_ratio*(width as f32)) as u32;
-    let resized_image = img.resize(width, new_height, FilterType::Triangle);
-    resized_image.save(out_file).unwrap();
+    if let Ok(img) = image::open(in_file) {
+        println!("> {:?} - rendering", in_file.file_name().unwrap());
+        let (img_height,img_width) = img.dimensions();
+        let aspect_ratio : f32 = (img_height as f32)/(img_width as f32);
+        let new_height: u32 = (aspect_ratio*(width as f32)) as u32;
+        let resized_image = img.resize(width, new_height, FilterType::Triangle);
+        resized_image.save(out_file).unwrap();
+    } else {
+        println!("> {:?} - could not open", in_file.file_name().unwrap());
+
+    }
 }
 
 pub fn get_cache_dir_path<'a>(original_path: &'a PathBuf, cache_dir_name: &str) -> PathBuf {

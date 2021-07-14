@@ -27,6 +27,7 @@ impl HtmlDom {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum HtmlElementType {
     P, A, Ul, Li, Head, Body, Br,
     Link, Img, Script,Title,

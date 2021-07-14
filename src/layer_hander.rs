@@ -29,6 +29,12 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         fs::create_dir(cache_dir_path).unwrap();
     }
 
+    // handle previous versions of this program
+    let prev_cache_dir_name = path.join("imageCache");
+    if prev_cache_dir_name.exists() {
+        fs::remove_dir_all(prev_cache_dir_name).unwrap();
+    }
+
     // first isolate all the directories and files in this dir
     let entries : Vec<Result<fs::DirEntry, io::Error>> = fs::read_dir(path).unwrap().collect();
     let directories : Vec<&DirEntry> = entries.iter().filter_map(|entry_res|
@@ -85,7 +91,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             let pa = PhotoAction::new(containing_dir, relative_path,relative_cache_path);
             // action_record.add_photo_action(pa);
             // downsize, save in cache dir
-            downsize_image(&abs_file_path, &abs_cache_path, 300);
+            downsize_image(&abs_file_path, &abs_cache_path, 500);
             return Some(pa);
         } else if is_html_file(&abs_file_path) {
             // is html -> delete
