@@ -70,6 +70,9 @@ pub fn get_cache_dir_path<'a>(original_path: &'a PathBuf, cache_dir_name: &str) 
     let file_name = original_path.file_name().unwrap();
     let file_path = original_path.parent().unwrap();
     let new_path = file_path.join(cache_dir_name).join(file_name);
+    println!("get_cache_dir_path");
+    println!("\t{:?}",original_path);
+    println!("\t{:?}",new_path);
     return new_path;
 }
 
