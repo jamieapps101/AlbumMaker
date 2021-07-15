@@ -35,6 +35,12 @@ fn main() {
                         .help("Sets the max number of threads used for downsizing images")
                         .takes_value(true)
                         .default_value("1"))
+                    .arg(Arg::with_name("im_width")
+                        .long("im-width")
+                        .value_name("WIDTH")
+                        .help("Sets the width of photos downsized")
+                        .takes_value(true)
+                        .default_value("500"))
                     .arg(Arg::with_name("clean")
                         .long("clean")
                         .help("Removes artifacts from this program, overides all other args"))
@@ -49,6 +55,8 @@ fn main() {
         Some(_count) => true,
         None => false,
     };
+
+    let downsize_image_width: u32 = matches.value_of("im_width").unwrap_or_default().parse().unwrap();
                     
     let tld = matches.value_of("dir").unwrap_or_default();
     let top_level_path = PathBuf::from(&tld).canonicalize().unwrap();
@@ -58,7 +66,7 @@ fn main() {
             Err(_) => panic!("did not understand depth arguement"),
         };
     let resources_path = PathBuf::from("/home/jamie/workspace/projects/album_maker/resources");
-    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path);
+    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,downsize_image_width);
 }
 
 
@@ -84,6 +92,7 @@ mod test {
         let test_files_path = PathBuf::from("./test_files").canonicalize().unwrap();
         let search_depth = 2;
         let resources_path = PathBuf::from("./resources");
-        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path);
+        let downsize_image_width = 500;
+        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,downsize_image_width);
     }
 }

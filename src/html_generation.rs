@@ -35,7 +35,9 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: 
         let mut list = HtmlElement::new(HtmlElementType::Div)
             .add_class("dirs_list");
         for action_record in ar.get_subdirs().iter() {
-            list = list.add_element(format_dir_template(action_record));
+            if let Some(element) = format_dir_template(action_record) {
+                list = list.add_element(element);
+            }
         }
         body = body.add_element(list);
         body = body.add_element(HtmlElement::new(HtmlElementType::Br));
@@ -75,11 +77,12 @@ fn format_image_template(pa: &PhotoAction) -> HtmlElement {
             .set_href(pa.get_actual().to_str().unwrap())
             .add_element(HtmlElement::new(HtmlElementType::Img)
                 .set_src(pa.get_downsized().to_str().unwrap())
-                .set_alt(image_name)));
+                .set_alt(image_name))
+                .add_class("disp_img"));
     return he;
 }
 
-fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
+fn format_dir_template(ar: &ActionRecord) -> Option<HtmlElement> {
 
     let mut sub_folder_index_path = ar.get_path();
     sub_folder_index_path.push("index.html");
@@ -107,21 +110,15 @@ fn format_dir_template(ar: &ActionRecord) -> HtmlElement {
             .set_href(sub_folder_index_path.to_str().unwrap())
             .add_element(HtmlElement::new(HtmlElementType::Img)
                 .set_src(cover_photo_path)
-                .set_alt(dir_name))
+                .set_alt(dir_name)
+                .add_class("dirs_img"))
             .add_element(HtmlElement::new(HtmlElementType::P)
                 .set_text(dir_name))
             );
-        return he;
+        return Some(he);
     } else {
-        let he = HtmlElement::new(HtmlElementType::Div)
-        .add_class("dirs_item")
-        .add_element(HtmlElement::new(HtmlElementType::A)
-            .add_class("dirs_link")
-            .set_href(sub_folder_index_path.to_str().unwrap())
-            .add_element(HtmlElement::new(HtmlElementType::P)
-                .set_text(dir_name))
-            );
-        return he;
+        // if there are no images anywhere in this dir then don't bother showing it
+        return None;
     }
 
 }

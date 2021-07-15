@@ -10,7 +10,7 @@ use rayon::prelude::*;
 use super::util::*;
 use super::html_generation::*;
 
-pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf) -> Option<ActionRecord> {
+pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf, downsize_image_width: u32) -> Option<ActionRecord> {
     println!("starting work in {:?}",path);
     if current_depth == max_depth+1 {
         return None;
@@ -66,9 +66,12 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         a.file_name().to_str().unwrap().to_lowercase().cmp(&b.file_name().to_str().unwrap().to_lowercase())
     });
     for directory in directories {
-        if directory.file_name()!="cacheDir" {
+        let os_str_file_name = directory.file_name();
+        let file_name = os_str_file_name.to_str().unwrap();
+        // ignore the cacheDirs we put there, and ignore any hidden folders
+        if file_name!="cacheDir" && file_name.chars().nth(0).unwrap() != '.' {
             // is dir -> recurse
-            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path) {
+            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path,downsize_image_width) {
                 action_record.add_subdir_action(action);
             }
         }
@@ -95,7 +98,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             let pa = PhotoAction::new(containing_dir, relative_path,relative_cache_path);
             // action_record.add_photo_action(pa);
             // downsize, save in cache dir
-            downsize_image(&abs_file_path, &abs_cache_path, 500);
+            downsize_image(&abs_file_path, &abs_cache_path, downsize_image_width);
             return Some(pa);
         } else if is_html_file(&abs_file_path) {
             // is html -> delete
