@@ -16,7 +16,7 @@ impl HtmlDom {
         }
     }
     pub fn render<W:Write>(self, f: &mut W) {
-        write!(f, "<!DOCTYPE html>\n").unwrap();
+        writeln!(f, "<!DOCTYPE html>").unwrap();
         for element in self.elements {
             element.render(0, f);
         }
@@ -102,13 +102,13 @@ impl HtmlElement {
     pub fn render<W:Write>(self,indent: usize, f: &mut W) {
         match self.element_type {
             HtmlElementType::P => {
-                write!(f,"{}<p class={}>{}</p>\n", 
+                writeln!(f,"{}<p class={}>{}</p>", 
                     space_pad(indent), 
                     to_class_string(self.class),
                     to_content_string(self.text)).unwrap();
             },
             HtmlElementType::Br => {
-                write!(f,"{}<br>\n", 
+                writeln!(f,"{}<br>", 
                     space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Ul => {
@@ -118,76 +118,76 @@ impl HtmlElement {
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</ul>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</ul>", space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Li => {
-                write!(f,"{}<li class={}>\n", 
+                writeln!(f,"{}<li class={}>", 
                     space_pad(indent), 
                     to_class_string(self.class)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</li>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</li>", space_pad(indent)).unwrap();
             },
             HtmlElementType::Div => {
-                write!(f,"{}<div class={}>\n", 
+                writeln!(f,"{}<div class={}>", 
                     space_pad(indent), 
                     to_class_string(self.class)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</div>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</div>", space_pad(indent)).unwrap();
             }, 
             HtmlElementType::A => {
-                write!(f,"{}<a class={} href={}>\n", 
+                writeln!(f,"{}<a class={} href={}>", 
                     space_pad(indent), 
                     to_class_string(self.class),
                     to_property_string(self.href)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</a>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</a>", space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Img => {
-                write!(f,"{}<img class={} src={} alt={}>\n", 
+                writeln!(f,"{}<img class={} src={} alt={}>", 
                     space_pad(indent), 
                     to_class_string(self.class),
                     to_property_string(self.src),
                     to_property_string(self.alt)).unwrap();
             },
             HtmlElementType::Head => {
-                write!(f,"{}<head class={}>\n", 
+                writeln!(f,"{}<head class={}>", 
                     space_pad(indent), 
                     to_class_string(self.class)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</head>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</head>", space_pad(indent)).unwrap();
             }, 
             HtmlElementType::Body => {
-                write!(f,"{}<body class={}>\n", 
+                writeln!(f,"{}<body class={}>", 
                     space_pad(indent), 
                     to_class_string(self.class)).unwrap();
                 for element in self.sub_elements {
                     element.render(indent+1, f);
                 }
-                write!(f,"{}</body>\n", space_pad(indent)).unwrap();
+                writeln!(f,"{}</body>", space_pad(indent)).unwrap();
             }, 
 
             HtmlElementType::Link => {
-                write!(f, "{}<link rel={} href={}>\n", 
+                writeln!(f, "{}<link rel={} href={}>", 
                     space_pad(indent), 
                     to_property_string(self.rel),
                     to_property_string(self.href)).unwrap();
             },
 
             HtmlElementType::Script => {
-                write!(f,"{}<script src={}></script>\n", 
+                writeln!(f,"{}<script src={}></script>", 
                     space_pad(indent), 
                     to_property_string(self.src)).unwrap();
             },
             HtmlElementType::Title => {
-                write!(f,"{}<title>{}</title>\n", 
+                writeln!(f,"{}<title>{}</title>", 
                     space_pad(indent), 
                     to_content_string(self.text)).unwrap();
             },
