@@ -5,12 +5,24 @@ use std::{
     fs::File,
     path::PathBuf,
     io::BufWriter,
+    str::FromStr
 };
 
 
-pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf) {
-    let styles_path = resources_path.join("styles.css").canonicalize().unwrap();
-    let script_path = resources_path.join("main.js").canonicalize().unwrap();
+pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf,local_resources:bool) {
+    
+    let styles_path = if !local_resources {
+        resources_path.join("styles.css").canonicalize().unwrap()
+    } else {
+        PathBuf::from_str("./cacheDir/styles.css").unwrap()
+    };
+
+    let script_path = if !local_resources {
+        resources_path.join("main.js").canonicalize().unwrap()
+    } else {
+        PathBuf::from_str("./cacheDir/main.js").unwrap()
+    };
+
     let mut dom = HtmlDom::new();
         dom.add_element(
             HtmlElement::new(HtmlElementType::Head)

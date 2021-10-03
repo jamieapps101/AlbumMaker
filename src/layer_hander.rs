@@ -10,7 +10,7 @@ use rayon::prelude::*;
 use super::util::*;
 use super::html_generation::*;
 
-pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf) -> Option<ActionRecord> {
+pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf,make_local:bool) -> Option<ActionRecord> {
     println!("starting work in {:?}",path);
     if current_depth == max_depth+1 {
         return None;
@@ -24,10 +24,10 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             fs::remove_dir_all(cache_dir_path.clone()).unwrap();
         }
         // make cache dir
-        fs::create_dir(cache_dir_path).unwrap();
+        fs::create_dir(cache_dir_path.clone()).unwrap();
     } else if !cache_dir_path.exists() {
         // make cache dir
-        fs::create_dir(cache_dir_path).unwrap();
+        fs::create_dir(cache_dir_path.clone()).unwrap();
     }
 
     // handle previous versions of this program
@@ -68,7 +68,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
     for directory in directories {
         if directory.file_name()!="cacheDir" {
             // is dir -> recurse
-            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path) {
+            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path,make_local) {
                 action_record.add_subdir_action(action);
             }
         }
@@ -113,12 +113,19 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         action_record.add_photo_action(pa);
     }
 
+    if make_local {
+        // todo, copy js+css from resources path into the cache dir
+        // mabe check if theres a new version first
+        fs::copy(resources_path.join("main.js"),    cache_dir_path.clone()).unwrap();
+        fs::copy(resources_path.join("styles.css"), cache_dir_path).unwrap();
+    }
+
     if current_depth==0 {
         // if this is the first layer
         // create html
         let mut file_path = path.clone();
         file_path.push("index.html");
-        create_html_index(&file_path, &action_record,resources_path);
+        create_html_index(&file_path, &action_record,resources_path,make_local);
         // copy over the css
 
         // return status
@@ -128,7 +135,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         // create html
         let mut file_path = path.clone();
         file_path.push("index.html");
-        create_html_index(&file_path, &action_record,resources_path);
+        create_html_index(&file_path, &action_record,resources_path,make_local);
         // return status
         return Some(action_record);
     }
