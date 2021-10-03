@@ -118,12 +118,10 @@ fn format_dir_template(ar: &ActionRecord,local_resources:bool) -> HtmlElement {
             let components :Vec<std::path::Component>= temp.components().collect();
             let components_count = components.len();
             let mut new_path = PathBuf::from(".");
-            // let sub_folder_name_component = components[components_count-2];
-            let sub_folder_name_component = components[components_count-2].clone();
+            let sub_folder_name_component = components[components_count-2];
             new_path.push(components[components_count-2]);
             new_path.push(components[components_count-1]);
             sub_folder_index_path = new_path;
-
 
             // image path
             let components :Vec<std::path::Component>= cover_photo_path.components().collect();
@@ -137,11 +135,7 @@ fn format_dir_template(ar: &ActionRecord,local_resources:bool) -> HtmlElement {
                     new_path.push(component);
                 }
             }
-            // new_path.push(components[components_count-3]);
-            // new_path.push(components[components_count-2]);
-            // new_path.push(components[components_count-1]);
             cover_photo_path = new_path;
-
         }
 
         let he = HtmlElement::new(HtmlElementType::Div)
@@ -183,16 +177,4 @@ fn get_first_photo(ar: &ActionRecord) -> Option<PhotoAction> {
     } else {
         return None;
     }
-}
-
-
-fn get_last_n_components(input: &PathBuf, n:usize) -> PathBuf {
-    // image path
-    let components :Vec<std::path::Component>= input.components().collect();
-    let components_count = components.len();
-    let mut new_path = PathBuf::from(".");
-    for i in n..0 {
-        new_path.push(components[components_count-i]);
-    }
-    return new_path;
 }

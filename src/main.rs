@@ -93,10 +93,6 @@ fn main() {
         }
     };
     
-
-    println!("resources_path: {:?}",resources_path);
-
-
     let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,local,force_regen);
 }
 

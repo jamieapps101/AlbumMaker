@@ -6,7 +6,6 @@ use std::{
 };
 
 use rayon::prelude::*;
-
 use super::util::*;
 use super::html_generation::*;
 
@@ -41,23 +40,23 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
     let mut directories : Vec<&DirEntry> = entries.iter().filter_map(|entry_res|
         if let Ok(d_entry) = entry_res {
             if d_entry.file_type().unwrap().is_dir() {
-                return Some(d_entry)
+                Some(d_entry)
             } else {
-                return None;
+                None
             }
         } else {
-            return None;
+            None
         }
     ).collect();
     let files : Vec<&DirEntry> = entries.iter().filter_map(|entry_res|
         if let Ok(d_entry) = entry_res {
             if d_entry.file_type().unwrap().is_file() {
-                return Some(d_entry)
+                Some(d_entry)
             } else {
-                return None;
+                None
             }
         } else {
-            return None;
+            None
         }
     ).collect();
 
@@ -96,20 +95,18 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             // is photo 
             let abs_cache_path      = get_cache_dir_path(&abs_file_path, "cacheDir");
             let relative_cache_path = get_cache_dir_path(&relative_path, "cacheDir");
-            println!("\tabs_cache_path->{:?}",abs_cache_path);
-            println!("\trelative_cache_path->{:?}",relative_cache_path);
             // make record
             let pa = PhotoAction::new(containing_dir, relative_path,relative_cache_path);
             // action_record.add_photo_action(pa);
             // downsize, save in cache dir
             downsize_image(&abs_file_path, &abs_cache_path, 500,force_regen);
-            return Some(pa);
+            Some(pa)
         } else if is_html_file(&abs_file_path) {
             // is html -> delete
             fs::remove_file(abs_file_path).unwrap();
-            return None;
+            None
         } else {
-            return None;
+            None
         }
     }).collect();
     pas.sort_by(|a, b| {
@@ -123,30 +120,20 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
     // if needed, copy over css and js files to local dir to make files simpler to reference
     if make_local {
         // todo check if theres a new version first, but overrisde this with force_regen
-        println!("resources_path.join(\"main.js\"): {:?}",resources_path.join("main.js"));
         for file_name in ["main.js", "styles.css"] {
             fs::copy(resources_path.join(file_name), cache_dir_path.join(file_name)).unwrap();
             fs::copy(resources_path.join(file_name), cache_dir_path.join(file_name)).unwrap();
         }
     }
 
+    let mut file_path = path.clone();
+    file_path.push("index.html");
+    create_html_index(&file_path, &action_record,resources_path,make_local);
     if current_depth==0 {
-        // if this is the first layer
-        // create html
-        let mut file_path = path.clone();
-        file_path.push("index.html");
-        create_html_index(&file_path, &action_record,resources_path,make_local);
-        // copy over the css
-
-        // return status
-        return None;
+        // if this is the first layer, no point returning anything
+        None
     } else {
-        // if this is not the first layer
-        // create html
-        let mut file_path = path.clone();
-        file_path.push("index.html");
-        create_html_index(&file_path, &action_record,resources_path,make_local);
-        // return status
-        return Some(action_record);
+        // if this is not the first layer, return status
+        Some(action_record)
     }
 }
