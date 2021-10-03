@@ -5,12 +5,24 @@ use std::{
     fs::File,
     path::PathBuf,
     io::BufWriter,
+    str::FromStr
 };
 
 
-pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf) {
-    let styles_path = resources_path.join("styles.css").canonicalize().unwrap();
-    let script_path = resources_path.join("main.js").canonicalize().unwrap();
+pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf,local_resources:bool) {
+    
+    let styles_path = if !local_resources {
+        resources_path.join("styles.css").canonicalize().unwrap()
+    } else {
+        PathBuf::from_str("./cacheDir/styles.css").unwrap()
+    };
+
+    let script_path = if !local_resources {
+        resources_path.join("main.js").canonicalize().unwrap()
+    } else {
+        PathBuf::from_str("./cacheDir/main.js").unwrap()
+    };
+
     let mut dom = HtmlDom::new();
         dom.add_element(
             HtmlElement::new(HtmlElementType::Head)
@@ -35,9 +47,10 @@ pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: 
         let mut list = HtmlElement::new(HtmlElementType::Div)
             .add_class("dirs_list");
         for action_record in ar.get_subdirs().iter() {
-            if let Some(element) = format_dir_template(action_record) {
-                list = list.add_element(element);
-            }
+            // if let Some(element) = format_dir_template(action_record) {
+            //     list = list.add_element(element);
+            // }
+            list = list.add_element(format_dir_template(action_record,local_resources));
         }
         body = body.add_element(list);
         body = body.add_element(HtmlElement::new(HtmlElementType::Br));
@@ -82,7 +95,7 @@ fn format_image_template(pa: &PhotoAction) -> HtmlElement {
     return he;
 }
 
-fn format_dir_template(ar: &ActionRecord) -> Option<HtmlElement> {
+fn format_dir_template(ar: &ActionRecord,local_resources:bool) -> HtmlElement {
 
     let mut sub_folder_index_path = ar.get_path();
     sub_folder_index_path.push("index.html");
@@ -94,7 +107,7 @@ fn format_dir_template(ar: &ActionRecord) -> Option<HtmlElement> {
         let cover_photo_containing_path = pa.get_dir();
         let downsized_path = pa.get_downsized();
         let abs_downsized_path = cover_photo_containing_path.join(downsized_path);
-        let cover_photo_path = abs_downsized_path.to_str().unwrap();
+        let mut cover_photo_path = abs_downsized_path;
 
         if !sub_folder_index_path.is_absolute() {
             let iterator  = sub_folder_index_path.components().skip(2);
@@ -103,22 +116,54 @@ fn format_dir_template(ar: &ActionRecord) -> Option<HtmlElement> {
             sub_folder_index_path = temp;
         }
 
+        if local_resources {
+            // subfolder path
+            let temp = sub_folder_index_path.clone(); // borrow checker needs this
+            let components :Vec<std::path::Component>= temp.components().collect();
+            let components_count = components.len();
+            let mut new_path = PathBuf::from(".");
+            let sub_folder_name_component = components[components_count-2];
+            new_path.push(components[components_count-2]);
+            new_path.push(components[components_count-1]);
+            sub_folder_index_path = new_path;
+
+            // image path
+            let components :Vec<std::path::Component>= cover_photo_path.components().collect();
+            let mut new_path = PathBuf::from(".");
+            let mut from_here = false;
+            for component in components {
+                if sub_folder_name_component == component {
+                    from_here = true;
+                }
+                if from_here {
+                    new_path.push(component);
+                }
+            }
+            cover_photo_path = new_path;
+        }
+
         let he = HtmlElement::new(HtmlElementType::Div)
         .add_class("dirs_item")
         .add_element(HtmlElement::new(HtmlElementType::A)
             .add_class("dirs_link")
             .set_href(sub_folder_index_path.to_str().unwrap())
             .add_element(HtmlElement::new(HtmlElementType::Img)
-                .set_src(cover_photo_path)
+                .set_src(cover_photo_path.to_str().unwrap())
                 .set_alt(dir_name)
                 .add_class("dirs_img"))
-            .add_element(HtmlElement::new(HtmlElementType::P)
+                .add_element(HtmlElement::new(HtmlElementType::P)
                 .set_text(dir_name))
             );
-        return Some(he);
+        return he;
     } else {
-        // if there are no images anywhere in this dir then don't bother showing it
-        return None;
+        let he = HtmlElement::new(HtmlElementType::Div)
+        .add_class("dirs_item")
+        .add_element(HtmlElement::new(HtmlElementType::A)
+            .add_class("dirs_link")
+            .add_element(HtmlElement::new(HtmlElementType::Img)
+                .set_text(dir_name))
+            );
+        return he;
     }
 
 }

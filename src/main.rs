@@ -23,6 +23,10 @@ fn main() {
                         .help("Sets the top level dir to build an album within")
                         .takes_value(true)
                         .default_value("."))
+                    .arg(Arg::with_name("force")
+                        .short("f")
+                        .long("force")
+                        .help("Force regeneration of files, ignoring timestaps"))
                     .arg(Arg::with_name("depth")
                         .long("depth")
                         .value_name("DEPTH")
@@ -44,6 +48,9 @@ fn main() {
                     .arg(Arg::with_name("clean")
                         .long("clean")
                         .help("Removes artifacts from this program, overides all other args"))
+                    .arg(Arg::with_name("local")
+                        .long("local")
+                        .help("Inserts js+css files into each directory, to allow other computers to access if shared over a network"))
                     .get_matches();
 
     //set number of threads for rayon
@@ -56,7 +63,18 @@ fn main() {
         None => false,
     };
 
-    let downsize_image_width: u32 = matches.value_of("im_width").unwrap_or_default().parse().unwrap();
+    // let downsize_image_width: u32 = matches.value_of("im_width").unwrap_or_default().parse().unwrap();
+    let local : bool = match matches.index_of("local") {
+        Some(_count) => true,
+        None => false,
+    };
+
+    let force_regen : bool = match matches.index_of("force") {
+        Some(_count) => true,
+        None => false,
+    };
+
+    println!("force_regen: {:?}",force_regen);
                     
     let tld = matches.value_of("dir").unwrap_or_default();
     let top_level_path = PathBuf::from(&tld).canonicalize().unwrap();
@@ -65,8 +83,25 @@ fn main() {
             Ok(value) => value,
             Err(_) => panic!("did not understand depth arguement"),
         };
-    let resources_path = PathBuf::from("/home/jamie/workspace/projects/album_maker/resources");
-    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,downsize_image_width);
+        
+        
+        // let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,downsize_image_width);
+    let resources_path: PathBuf = match env::var_os("RESOURCE_PATH") {
+        Some(path) => {
+            PathBuf::from(path)
+        },
+        None => {
+            let exe_path = env::current_exe().unwrap();
+            let cand_resource_path = exe_path.parent().unwrap().join("resources");
+            if cand_resource_path.exists() {
+                cand_resource_path
+            } else {
+                PathBuf::from("/home/jamie/workspace/projects/AlbumMaker/resources")
+            }
+        }
+    };
+    
+    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,local,force_regen);
 }
 
 
@@ -92,7 +127,8 @@ mod test {
         let test_files_path = PathBuf::from("./test_files").canonicalize().unwrap();
         let search_depth = 2;
         let resources_path = PathBuf::from("./resources");
-        let downsize_image_width = 500;
-        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,downsize_image_width);
+        // let downsize_image_width = 500;
+        // let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,downsize_image_width);
+        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,false,false);
     }
 }
