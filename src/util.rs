@@ -77,8 +77,8 @@ use image::{
 };
 
 // file system manipulation
-pub fn downsize_image(in_file: &PathBuf, out_file: &PathBuf, width: u32) {
-    if in_file.exists() && out_file.exists() {
+pub fn downsize_image(in_file: &PathBuf, out_file: &PathBuf, width: u32, force_regen:bool) {
+    if !force_regen && in_file.exists() && out_file.exists() {
         // println!("\tBoth exist");
         let in_file_creation_time = in_file.metadata().unwrap().created().unwrap();
         let out_file_creation_time = out_file.metadata().unwrap().created().unwrap();
