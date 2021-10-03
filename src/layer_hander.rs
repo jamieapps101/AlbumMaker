@@ -84,6 +84,11 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             panic!("this should be abs {:?}",abs_file_path);
         }
 
+        // let containing_dir : PathBuf = if make_local {
+            //     PathBuf::from(".")
+            // } else {
+                //     abs_file_path.parent().unwrap().into()
+                // };
         let containing_dir : PathBuf = abs_file_path.parent().unwrap().into();
         let relative_path  : PathBuf = abs_file_path.file_name().unwrap().into();
 
@@ -91,6 +96,8 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             // is photo 
             let abs_cache_path      = get_cache_dir_path(&abs_file_path, "cacheDir");
             let relative_cache_path = get_cache_dir_path(&relative_path, "cacheDir");
+            println!("\tabs_cache_path->{:?}",abs_cache_path);
+            println!("\trelative_cache_path->{:?}",relative_cache_path);
             // make record
             let pa = PhotoAction::new(containing_dir, relative_path,relative_cache_path);
             // action_record.add_photo_action(pa);
@@ -113,6 +120,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         action_record.add_photo_action(pa);
     }
 
+    // if needed, copy over css and js files to local dir to make files simpler to reference
     if make_local {
         // todo check if theres a new version first, but overrisde this with force_regen
         println!("resources_path.join(\"main.js\"): {:?}",resources_path.join("main.js"));
