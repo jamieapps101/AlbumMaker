@@ -28,12 +28,17 @@ fn main() {
                         .short("f")
                         .long("force")
                         .help("Force regeneration of files, ignoring timestaps"))
-                    .arg(Arg::with_name("depth")
+                        .arg(Arg::with_name("depth")
                         .long("depth")
                         .value_name("DEPTH")
                         .help("Sets the maximum depth to search for photos")
                         .takes_value(true)
                         .default_value("5"))
+                    .arg(Arg::with_name("resources")
+                        .long("resources")
+                        .value_name("RESOURCES")
+                        .help("specify path to web resources")
+                        .takes_value(true))
                     .arg(Arg::with_name("threads")
                         .long("threads")
                         .value_name("THREADS")
@@ -87,7 +92,7 @@ fn main() {
         
         
         // let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,downsize_image_width);
-    let resources_path: PathBuf = match env::var("RESOURCE_PATH") {
+    let infered_resources_path: PathBuf = match env::var("RESOURCE_PATH") {
         Ok(path) => {
             PathBuf::from(path)
         },
@@ -101,6 +106,13 @@ fn main() {
             }
         }
     };
+
+    let resources_path = if let Some(val) = matches.value_of("resources") {
+        PathBuf::from(val)
+    } else {    
+        infered_resources_path
+    };
+        
 
     let use_ffmpeg = ffmpeg_interface::ffmpeg_available();
     if use_ffmpeg {println!("using ffmpeg")} else {println!("no ffmpeg detected")}
