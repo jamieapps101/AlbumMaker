@@ -12,7 +12,12 @@ use std::{
 pub fn create_html_index(new_file: &PathBuf, ar: &ActionRecord, resources_path: &PathBuf,local_resources:bool) {
     
     let styles_path = if !local_resources {
-        resources_path.join("styles.css").canonicalize().unwrap()
+        // resources_path.join("styles.css").canonicalize().unwrap()
+        if let Ok(thing) = resources_path.join("styles.css").canonicalize() {
+            thing
+        } else {
+            panic!("Error looking in\n{:?}\n",resources_path);
+        }
     } else {
         PathBuf::from_str("./cacheDir/styles.css").unwrap()
     };

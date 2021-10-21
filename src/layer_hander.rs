@@ -5,12 +5,14 @@ use std::{
     path::PathBuf,
 };
 
+use crate::ffmpeg_interface;
 use rayon::prelude::*;
-use super::util::*;
+use super::util;
+use super::util::{ActionRecord,PhotoAction,is_html_file,is_image_file,get_cache_dir_path};
 use super::html_generation::*;
 
 // pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf, downsize_image_width: u32) -> Option<ActionRecord> {
-pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf,make_local:bool, force_regen: bool) -> Option<ActionRecord> {
+pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean: bool,resources_path: &PathBuf,make_local:bool, force_regen: bool, use_ffmpeg:bool) -> Option<ActionRecord> {
     println!("starting work in {:?}",path);
     if current_depth == max_depth+1 {
         return None;
@@ -72,7 +74,7 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         if file_name!="cacheDir" && file_name.chars().nth(0).unwrap() != '.' {
             // is dir -> recurse
             // if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path,downsize_image_width) {
-            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path,make_local,force_regen) {
+            if let Some(action) = handle_layer(&directory.path(),current_depth+1,max_depth,clean,resources_path,make_local,force_regen,use_ffmpeg) {
                 action_record.add_subdir_action(action);
             }
         }
@@ -96,7 +98,9 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
         let containing_dir : PathBuf = abs_file_path.parent().unwrap().into();
         let relative_path  : PathBuf = abs_file_path.file_name().unwrap().into();
 
-        if is_image_file(&abs_file_path) {
+        // don't bother checking if its an image file if using ffmpeg, let ffmpeg
+        // decide if it can work on it.
+        if is_image_file(&abs_file_path) || use_ffmpeg {
             // is photo 
             let abs_cache_path      = get_cache_dir_path(&abs_file_path, "cacheDir");
             let relative_cache_path = get_cache_dir_path(&relative_path, "cacheDir");
@@ -106,7 +110,11 @@ pub fn handle_layer(path: &PathBuf, current_depth: usize, max_depth: usize,clean
             // downsize, save in cache dir
             // downsize_image(&abs_file_path, &abs_cache_path, downsize_image_width);
             // return Some(pa);
-            downsize_image(&abs_file_path, &abs_cache_path, 500,force_regen);
+            if use_ffmpeg {
+                ffmpeg_interface::downsize_image(&abs_file_path, &abs_cache_path, 500,force_regen);
+            } else {
+                util::downsize_image(&abs_file_path, &abs_cache_path, 500,force_regen);
+            }
             Some(pa)
         } else if is_html_file(&abs_file_path) {
             // is html -> delete

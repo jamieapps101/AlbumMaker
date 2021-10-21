@@ -8,6 +8,7 @@ mod html_builder;
 mod html_generation;
 mod util;
 mod layer_hander;
+mod ffmpeg_interface;
 
 use layer_hander::*;
 
@@ -86,22 +87,25 @@ fn main() {
         
         
         // let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,downsize_image_width);
-    let resources_path: PathBuf = match env::var_os("RESOURCE_PATH") {
-        Some(path) => {
+    let resources_path: PathBuf = match env::var("RESOURCE_PATH") {
+        Ok(path) => {
             PathBuf::from(path)
         },
-        None => {
+        Err(_) => {
             let exe_path = env::current_exe().unwrap();
             let cand_resource_path = exe_path.parent().unwrap().join("resources");
             if cand_resource_path.exists() {
                 cand_resource_path
             } else {
-                PathBuf::from("/home/jamie/workspace/projects/AlbumMaker/resources")
+                PathBuf::from("/home/jamie/workspace/projects/album_maker/resources")
             }
         }
     };
+
+    let use_ffmpeg = ffmpeg_interface::ffmpeg_available();
+    if use_ffmpeg {println!("using ffmpeg")} else {println!("no ffmpeg detected")}
     
-    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,local,force_regen);
+    let _fs = handle_layer(&top_level_path, 0, search_depth,clean,&resources_path,local,force_regen,use_ffmpeg);
 }
 
 
@@ -129,6 +133,6 @@ mod test {
         let resources_path = PathBuf::from("./resources");
         // let downsize_image_width = 500;
         // let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,downsize_image_width);
-        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,false,false);
+        let _fs = handle_layer(&test_files_path, 0, search_depth,false,&resources_path,false,false,false);
     }
 }

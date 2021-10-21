@@ -1,2 +1,4 @@
+#! /usr/bin/env bash
+
 cargo build --release
-./target/release/album_maker
+RESOURCE_PATH=`pwd`/resources ./target/release/album_maker -d ./test_files 
